@@ -1,0 +1,94 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+comment "Basic CXX Support"
+
+config C99_BOOL8
+	bool "sizeof(_Bool) is 8-bits"
+	default n
+	---help---
+		This setting means (1) your C++ compiler has sizeof(_Bool) == 8, (2)
+		your C compiler supports the C99 _Bool intrinsic type, and (2) that
+		the C99 _Bool type also has size 1.
+
+config HAVE_CXX
+	bool "Have C++ compiler"
+	default n
+	---help---
+		Toolchain supports C++ and CXX, CXXFLAGS, and COMPILEXX have been
+		defined in the configurations Make.defs file.
+
+if HAVE_CXX
+
+choice
+	prompt "C++ Library"
+	default LIBCXXMINI
+
+config LIBCXXMINI
+	bool "Basic C++ support"
+	---help---
+		A fragmentary C++ library that will allow to build only
+		the simplest of C++ applications. Only contain basic C++
+		runtime support function.
+
+config LIBCXX
+	bool "LLVM libc++ C++ Standard Library"
+	select CLOCK_MONOTONIC
+	select LIBC_WCHAR
+	select LIBC_LOCALE
+	---help---
+		LLVM "libc++" C++ Standard Library
+		https://libcxx.llvm.org/
+
+config UCLIBCXX
+	bool "uClibc++ Standard C++ Library"
+	---help---
+		uClibc++ C++ library
+		https://cxx.uclibc.org/
+
+endchoice
+
+if LIBCXX || UCLIBCXX
+
+choice
+	prompt "C++ low level library select"
+	default LIBSUPCXX
+
+config LIBCXXABI
+	bool "LLVM low level C++ Library"
+	---help---
+		LLVM "libc++abi" C++ Standard Library
+		https://libcxxabi.llvm.org/
+		Select if your use libc++abi as lower level c++ library
+
+config LIBSUPCXX
+	bool "GNU low level libsupc++"
+	---help---
+		Select if your toolchain provides libsupc++ and use libsupc++ as lower
+		level c++ library.
+
+endchoice
+
+endif
+
+config HAVE_CXXINITIALIZE
+	bool "Have C++ initialization"
+	default LIBCXX || UCLIBCXX
+	---help---
+		The platform-specific logic includes support for initialization
+		of static C++ instances for this architecture and for the selected
+		toolchain (via up_cxxinitialize()).
+
+config CXX_EXCEPTION
+	bool "Enable Exception Support"
+
+if UCLIBCXX
+
+config UCLIBCXX_BUFSIZE
+	int "IO Stream/Container Buffer Size"
+	default 32
+
+endif
+endif
